@@ -24,3 +24,14 @@ def Simple_parser(text):
         return num1 - num2
     elif op == '/':
         return num1 / num2
+
+
+
+    while True:
+        expr = input("Podaj działanie (albo 'q' aby wyjść): ")
+        if expr == "q":
+            break
+        try:
+            print(Simple_parser(expr))
+        except ValueError as e:
+            print(f"Błąd: {e}")
