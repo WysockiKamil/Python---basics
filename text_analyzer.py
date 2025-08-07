@@ -1,4 +1,4 @@
-import os
+import os, string
 
 def text_analyzer(text):
     words = text.split()
@@ -8,8 +8,9 @@ def text_analyzer(text):
 
     word_counts = {}
     for word in words:
-        normalized = word.lower()
-        word_counts[normalized] = word_counts.get(normalized, 0) + 1
+        normalized = word.strip(string.punctuation).lower()
+        if normalized:
+            word_counts[normalized] = word_counts.get(normalized, 0) + 1
 
     return {
         'num_words': num_words,
