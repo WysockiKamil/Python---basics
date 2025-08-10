@@ -1,42 +1,54 @@
-def analyze_logs(file_path):
-    with open(file_path, 'r', encoding='utf-8') as f:
-        lines = f.readlines()
+def read_log_file(filepath):
+    """Wczytuje plik logu i zwraca listę jego linii."""
+    with open(filepath, "r", encoding="utf-8") as f:
+        return f.readlines()
 
-    total_logs = len(lines)
-    level_counts = {"INFO": 0, "WARNING": 0, "ERROR": 0}
-    message_counts = {}
 
-    for line in lines:
-        if "[INFO]" in line:
-            level_counts["INFO"] += 1
-        elif "[WARNING]" in line:
-            level_counts["WARNING"] += 1
-        elif "[ERROR]" in line:
-            level_counts["ERROR"] += 1
 
-        # Wyciągamy komunikat po ] (ostatni fragment linii)
-        message = line.split("]")[-1].strip()
-        message_counts[message] = message_counts.get(message, 0) + 1
+def analyze_logs(log_lines):
+    total_requests = len(log_lines)
+    ip_counts = {}
+    status_counts = {}
+
+    for line in log_lines:
+        parts = line.split()
+        if len(parts) < 9:
+            continue
+
+        ip = parts[0]
+        try:
+            status = int(parts[8])
+        except ValueError:
+            continue  # pomiń linie z błędnym kodem
+
+        ip_counts[ip] = ip_counts.get(ip, 0) + 1
+        status_counts[status] = status_counts.get(status, 0) + 1
+
+    most_common_ip = max(ip_counts, key=ip_counts.get) if ip_counts else None
+    most_common_status = max(status_counts, key=status_counts.get) if status_counts else None
 
     return {
-        "total_logs": total_logs,
-        "level_counts": level_counts,
-        "message_counts": dict(sorted(message_counts.items(), key=lambda x: x[1], reverse=True))
+        "total_requests": total_requests,
+        "most_common_ip": most_common_ip,
+        "most_common_status": most_common_status,
+        "ip_counts": ip_counts,
+        "status_counts": status_counts
     }
 
-
 def main():
-    file_path = input("Podaj ścieżkę do pliku logów: ")
-    result = analyze_logs(file_path)
+    filepath = input("Podaj ścieżkę do pliku logów: ")
+    try:
+        log_lines = read_log_file(filepath)
+        results = analyze_logs(log_lines)
 
-    print(f"\nLiczba wpisów: {result['total_logs']}")
-    print("\nPoziomy logów:")
-    for level, count in result['level_counts'].items():
-        print(f"{level}: {count}")
-
-    print("\nNajczęstsze komunikaty:")
-    for message, count in result['message_counts'].items():
-        print(f"{message}: {count}")
+        print("\n=== Wyniki analizy logów ===")
+        print(f"Całkowita liczba żądań: {results['total_requests']}")
+        print(f"Najczęstszy adres IP: {results['most_common_ip']}")
+        print(f"Najczęstszy kod statusu: {results['most_common_status']}")
+    except FileNotFoundError:
+        print("Błąd: nie znaleziono pliku.")
+    except Exception as e:
+        print(f"Wystąpił błąd: {e}")
 
 
 if __name__ == "__main__":
